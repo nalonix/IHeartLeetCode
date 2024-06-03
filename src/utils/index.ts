@@ -29,15 +29,18 @@ export const botApi = {
         return response;
     },
     sendPhoto: async (url: string, chat_id: string, caption: string = '') => {
-        const urlEncodedData = new URLSearchParams({photo: url, caption: caption, chat_id}).toString();
+        console.log()
+        const urlEncodedData = new URLSearchParams({photo: url, caption, chat_id }).toString();
         
-        const response = await fetch(`https://api.telegram.org/bot${process.env.BOT_API}/sendMedia`, {
+        const response = await fetch(`https://api.telegram.org/bot${process.env.BOT_API}/sendPhoto`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: urlEncodedData,
         });
+
+        console.log("👉👉 ",await response.json())
 
         return response;
     }

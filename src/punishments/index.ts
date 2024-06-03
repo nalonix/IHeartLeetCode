@@ -12,7 +12,16 @@ export const punishments = {
         type: "text"
     },
     "4": {
-        data: "http://localhost:3000/images/day10image.jpg",
+        data: "day10image.jpg",
         type: "photo"
-    }
+    },
+    "5": {
+        data: "day11image.jpg",
+        type: "photo"
+    },
+    "6": {
+        data: "day12image.jpg",
+        type: "photo"
+    },
+
 }
