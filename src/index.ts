@@ -1,14 +1,19 @@
-import { Hono } from 'hono'
-import { serve } from '@hono/node-server'
-import { serveStatic } from '@hono/node-server/serve-static'
+const { Hono } = require('hono');
+const { serve } = require('@hono/node-server');
+const { serveStatic } = require('@hono/node-server/serve-static');
 
-import { botApi, dateToUnixEpoch, hoursDifference } from './utils'
-import { punishments } from './punishments'
+const { botApi, dateToUnixEpoch, hoursDifference } = require('./utils');
+const { punishments } = require('./punishments');
 
-import dotenv from 'dotenv';
+const dotenv = require('dotenv');
 dotenv.config();
 
 const app = new Hono()
+
+let missedCount = 1;
+
+const channelID = process.env.CHANNEL_ID as string
+const leetCodeUsername = process.env.LEETCODE_USERNAME as string
 
 // Middleware to validate API key
 app.use('/punishments/images/*', async (c, next) => {
@@ -24,13 +29,7 @@ app.use('/punishments/images/*', async (c, next) => {
 // Serve static images
 app.use('/punishments/images/*', serveStatic({root: './src'}))
 
-let missedCount = 1;
-
-const channelID = process.env.CHANNEL_ID as string
-const leetCodeUsername = process.env.LEETCODE_USERNAME as string
-
-
-// User middleware to validate the user
+// Use middleware to validate the user
 app.use('/', async (c, next) => {
   const apiKey = c.req.query('apiKey')
   console.log('the api key: ', apiKey)
