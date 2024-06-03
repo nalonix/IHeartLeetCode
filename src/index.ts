@@ -1,14 +1,30 @@
-import { serve } from '@hono/node-server'
 import { Hono } from 'hono'
+import { serve } from '@hono/node-server'
+import { serveStatic } from '@hono/node-server/serve-static'
+
 import { botApi, dateToUnixEpoch, hoursDifference } from './utils'
 import { punishments } from './punishments'
 
+import dotenv from 'dotenv';
+dotenv.config();
 
 const app = new Hono()
-// app.use('/images/*', serveStatic({ root: path.join(__dirname, 'images') }))
 
+// Middleware to validate API key
+app.use('/punishments/images/*', async (c, next) => {
+  const apiKey = c.req.query('apiKey')
+  console.log('the api key: ', apiKey)
 
-let missedCount = 4;
+  if (!apiKey || (apiKey !== process.env.INSTANCE_SECRET)) {
+      return c.text('Forbidden', 403)
+  }
+  await next()
+})
+
+// Serve static images
+app.use('/punishments/images/*', serveStatic({root: './src'}))
+
+let missedCount = 1;
 
 const channelID = process.env.CHANNEL_ID as string
 const leetCodeUsername = process.env.LEETCODE_USERNAME as string
@@ -18,28 +34,45 @@ app.get('/', async (c) => {
   const unixEpochTime = dateToUnixEpoch(date);
 
   const resp = await fetch(`https://leetcode-api-faisalshohag.vercel.app/${leetCodeUsername}`)
+
+  if(!resp.ok){
+    return c.json({ success: false, message: "Failed to fetch from leetcode API"})
+  }
   const body = await resp.json()
+
   const lastPractice = body.recentSubmissions[0].timestamp
 
   const diffHours = hoursDifference(unixEpochTime, lastPractice);  
 
   let response: any;
+
+  // Make sure the difference is greater than 24 hours
+
+  // If not greater than 24 hours, appreciate the user
+  if(diffHours <= 24){
+    response = await botApi.sendMessage(`You have submitted today, keep it up!`, channelID)
+    if(response.ok){
+      return c.json({ success: true, difference: diffHours.toString()})
+    }
+    return c.json({ success: false, message: "Failed to send message"})
+  }
+
+  // If greater than 24 hours, punish the user
   if(diffHours > 24){
     const punishment = punishments[missedCount.toString()]
-    console.log(punishment)
 
     if(punishment.type === 'text'){
       response = await botApi.sendMessage(punishment.data, channelID)
-    }else if(punishment.type === 'image'){
-      console.log("I punish with photo")
-      response = await botApi.sendPhoto('http://localhost:3000/punishments/images/day10image.jpg', channelID, "Hi")
+    }else if(punishment.type === 'photo'){
+      response = await botApi.sendPhoto( `${c.req.url}/punishments/images/${punishment.data}?apiKey=${process.env.INSTANCE_SECRET}`, channelID)
+      return c.json(response)
     }
-    // console.log(await resp.json())
-    const responseData = await response.json();
-    return c.json(responseData);
+
+    if(response.ok){
+      return c.json({ success: true, difference: diffHours.toString()})
+    }
+    return c.json({ success: false, message: "Failed to punish"})
   }
-  
-  return c.json({ success: true, difference: diffHours.toString()})
 })
 
 
