@@ -29,9 +29,23 @@ let missedCount = 1;
 const channelID = process.env.CHANNEL_ID as string
 const leetCodeUsername = process.env.LEETCODE_USERNAME as string
 
+
+// User middleware to validate the user
+app.use('/', async (c, next) => {
+  const apiKey = c.req.query('apiKey')
+  console.log('the api key: ', apiKey)
+
+  if (!apiKey || (apiKey !== process.env.INSTANCE_SECRET)) {
+      return c.text('Forbidden', 403)
+  }
+  await next()
+})
+
 app.get('/', async (c) => {
   const date = new Date(); 
   const unixEpochTime = dateToUnixEpoch(date);
+
+
 
   const resp = await fetch(`https://leetcode-api-faisalshohag.vercel.app/${leetCodeUsername}`)
 
