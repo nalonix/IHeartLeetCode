@@ -1,4 +1,4 @@
-const punishments = {
+export const punishments = {
     "1": {
         data: "I missed today bot test",
         type: "text"
@@ -26,6 +26,3 @@ const punishments = {
 
 }
 
-module.exports = {
-    punishments
-}
