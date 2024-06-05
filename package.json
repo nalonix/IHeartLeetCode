@@ -1,6 +1,10 @@
 {
+  "name": "IHeartLeetCode",
+  "version": "1.0.0",
+  "description": "A bot to help you practice leetcode",
+  "type": "module",
   "scripts": {
-    "dev": "node ./src/index.ts",
+    "dev": "node ./src/index.js",
     "start": "node ./src/index.js"
   },
   "dependencies": {
