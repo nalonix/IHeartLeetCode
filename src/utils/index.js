@@ -1,11 +1,11 @@
 
 
-export function dateToUnixEpoch(date: Date) {
+function dateToUnixEpoch(date) {
     return Math.floor(date.getTime() / 1000);
 }
   
 
-export function hoursDifference(epochTime1: number, epochTime2: number) {
+function hoursDifference(epochTime1, epochTime2) {
     // Calculate the absolute difference in seconds
     const differenceInSeconds = Math.abs(epochTime1 - epochTime2);
     // Convert the difference from seconds to hours
@@ -14,8 +14,8 @@ export function hoursDifference(epochTime1: number, epochTime2: number) {
 }
   
 
-export const botApi = {
-    sendMessage: async (text: string, chat_id: string) => {
+const botApi = {
+    sendMessage: async (text, chat_id) => {
         const urlEncodedData = new URLSearchParams({text, chat_id}).toString();
 
         const response = await fetch(`https://api.telegram.org/bot${process.env.BOT_API}/sendMessage`, {
@@ -28,7 +28,7 @@ export const botApi = {
 
         return response;
     },
-    sendPhoto: async (url: string, chat_id: string, caption: string = '') => {
+    sendPhoto: async (url, chat_id, caption = '') => {
         console.log()
         const urlEncodedData = new URLSearchParams({photo: url, caption, chat_id }).toString();
         
@@ -44,4 +44,10 @@ export const botApi = {
 
         return response;
     }
+}
+
+module.exports = {
+    dateToUnixEpoch,
+    hoursDifference,
+    botApi
 }

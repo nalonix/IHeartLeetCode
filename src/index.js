@@ -1,3 +1,8 @@
+// import { client } from "./db";
+
+// import { redis } from "./db";
+
+const { redis } = require('./db');
 const { Hono } = require('hono');
 const { serve } = require('@hono/node-server');
 const { serveStatic } = require('@hono/node-server/serve-static');
@@ -10,10 +15,9 @@ dotenv.config();
 
 const app = new Hono()
 
-let missedCount = 1;
+const channelID = process.env.CHANNEL_ID || ''
+const leetCodeUsername = process.env.LEETCODE_USERNAME || ''
 
-const channelID = process.env.CHANNEL_ID as string
-const leetCodeUsername = process.env.LEETCODE_USERNAME as string
 
 // Middleware to validate API key
 app.use('/punishments/images/*', async (c, next) => {
@@ -26,9 +30,9 @@ app.use('/punishments/images/*', async (c, next) => {
   await next()
 })
 
+
 // Serve static images
 app.use('/punishments/images/*', serveStatic({root: './src'}))
-
 // Use middleware to validate the user
 app.use('/', async (c, next) => {
   const apiKey = c.req.query('apiKey')
@@ -40,11 +44,11 @@ app.use('/', async (c, next) => {
   await next()
 })
 
+
 app.get('/', async (c) => {
   const date = new Date(); 
   const unixEpochTime = dateToUnixEpoch(date);
-
-
+  const missedCount = await redis.get('missedCount') || 1
 
   const resp = await fetch(`https://leetcode-api-faisalshohag.vercel.app/${leetCodeUsername}`)
 
@@ -57,13 +61,11 @@ app.get('/', async (c) => {
 
   const diffHours = hoursDifference(unixEpochTime, lastPractice);  
 
-  let response: any;
-
-  // Make sure the difference is greater than 24 hours
+  let response;
 
   // If not greater than 24 hours, appreciate the user
   if(diffHours <= 24){
-    response = await botApi.sendMessage(`You have submitted today, keep it up!`, channelID)
+    response = await botApi.sendMessage(`You have submitted today, keep it up! 🎉`, channelID)
     if(response.ok){
       return c.json({ success: true, difference: diffHours.toString()})
     }
@@ -82,7 +84,8 @@ app.get('/', async (c) => {
     }
 
     if(response.ok){
-      return c.json({ success: true, difference: diffHours.toString()})
+      await redis.set('missedCount', missedCount + 1)
+      return c.json({ success: true, difference: diffHours.toString()})  
     }
     return c.json({ success: false, message: "Failed to punish"})
   }
@@ -96,3 +99,24 @@ serve({
   fetch: app.fetch,
   port
 })
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,6 +1,6 @@
-export const punishments = {
+const punishments = {
     "1": {
-        data: "I am an idiot",
+        data: "I missed today bot test",
         type: "text"
     },
     "2": {
@@ -24,4 +24,8 @@ export const punishments = {
         type: "photo"
     },
 
+}
+
+module.exports = {
+    punishments
 }
