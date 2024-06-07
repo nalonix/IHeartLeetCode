@@ -47,7 +47,9 @@ app.get('/', async (c) => {
   const resp = await fetch(`https://leetcode-api-faisalshohag.vercel.app/${leetCodeUsername}`);
 
   if (!resp.ok) {
-    return c.json({ success: false, message: "Failed to fetch from leetcode API" });
+    return c.text('Failed to fetch from leetcode API', 500);
+    // return c.json({ success: false, message: "Failed to fetch from leetcode API" });
+    
   }
   const body = await resp.json();
 
@@ -60,9 +62,11 @@ app.get('/', async (c) => {
   if (diffHours <= 24) {
     response = await botApi.sendMessage(`You have submitted today, keep it up! 🎉`, channelID);
     if (response.ok) {
-      return c.json({ success: true, difference: diffHours.toString() });
+      return c.text('You have submitted today, keep it up! 🎉', 200);
+      // return c.json({ success: true, difference: diffHours.toString() });
     }
-    return c.json({ success: false, message: "Failed to send message" });
+    return c.text('Failed to send message', 500);
+    // return c.json({ success: false, message: "Failed to send message" });
   }
 
   // If greater than 24 hours, punish the user
@@ -73,14 +77,14 @@ app.get('/', async (c) => {
       response = await botApi.sendMessage(punishment.data, channelID);
     } else if (punishment.type === 'photo') {
       response = await botApi.sendPhoto(`${c.req.url}/punishments/images/${punishment.data}?apiKey=${process.env.INSTANCE_SECRET}`, channelID);
-      return c.json(response);
     }
 
     if (response.ok) {
       await redis.set('missedCount', missedCount + 1);
-      return c.json({ success: true, difference: diffHours.toString() });
+      return c.text('You have been punished for not submitting today', 200);
+      // return c.json({ success: true, difference: diffHours.toString() });
     }
-    return c.json({ success: false, message: "Failed to punish" });
+    return c.text('Failed to punish', 500);
   }
 });
 
